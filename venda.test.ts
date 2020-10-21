@@ -2,7 +2,6 @@ import { Venda } from './venda';
 import { Loja } from './loja';
 import { Endereco } from './endereco';
 import { Produto } from './produto';
-import { Item } from './item';
 
 
 function verificaCampoObrigatorio(mensagemEsperada: string, venda: Venda) {
@@ -16,6 +15,14 @@ function verificaCampoObrigatorio(mensagemEsperada: string, venda: Venda) {
 function verificaCampoObrigatorioVenda(mensagemEsperada: string, venda: Venda, item: number, produto: Produto, quantidade: number) {
     try {
         venda.montarCompra(item, produto, quantidade);
+    } catch (e) {
+        expect(e.message).toBe(mensagemEsperada);
+    }
+}
+
+function verificaCampoObrigatorioPagamento(mensagemEsperada: string, venda: Venda) {
+    try {
+        venda.imprimeCupom();
     } catch (e) {
         expect(e.message).toBe(mensagemEsperada);
     }
@@ -36,7 +43,100 @@ let INSCRICAO_ESTADUAL = "123456789"
 let DATA_HORA = "25/11/2020 10:30:40V"
 let CCF = 123456
 let COO = 654321
+let METODO_PAG_CREDITO = "Cartão de Crédito"
+let METODO_PAG_DEBITO = "Cartão de Débito"
+let METODO_PAG_DINHEIRO = "Dinheiro"
+let VALOR_RECEBIDO = 100.00
 
+let exProd1 : Produto = new Produto(10, "Banana", "cx", 7.45, "ST");
+let exProd2 : Produto = new Produto(20, "Laranja", "cx", 3.32, "ST");
+let exProd3 : Produto = new Produto(30, "Chocolate", "un", 0, ""); 
+
+const TEXTO_ESPERADO_CUPOM_COMPLETO_DINHEIRO = `Loja 1
+Log 1, 10 C1
+Bai 1 - Mun 1 - E1
+CEP:11111-111 Tel (11) 1111-1111
+Obs 1
+CNPJ: 11.111.111/1111-11
+IE: 123456789
+------------------------------
+25/11/2020 10:30:40V CCF:123456 COO: 654321
+   CUPOM FISCAL   
+ITEM CODIGO DESCRICAO QTD UN VL UNIT(R$) ST VL ITEM(R$)
+1 10 Banana 10 cx 7.45 ST 74.50
+2 20 Laranja 5 cx 3.32 ST 16.60
+------------------------------
+TOTAL R$ 91.10
+Dinheiro 100.00
+Troco R$ 8.90`
+
+test ('cupom_completo_dinheiro', () => {
+    let venda = lojaMod.makeVenda(DATA_HORA, CCF, COO);
+    venda.montarCompra(1, exProd1, 10);
+    venda.montarCompra(2, exProd2, 5);
+    venda.montarPagamento(METODO_PAG_DINHEIRO, VALOR_RECEBIDO);
+    expect(venda.imprimeCupom()).toBe(TEXTO_ESPERADO_CUPOM_COMPLETO_DINHEIRO);
+})
+
+const TEXTO_ESPERADO_CUPOM_COMPLETO_CREDITO = `Loja 1
+Log 1, 10 C1
+Bai 1 - Mun 1 - E1
+CEP:11111-111 Tel (11) 1111-1111
+Obs 1
+CNPJ: 11.111.111/1111-11
+IE: 123456789
+------------------------------
+25/11/2020 10:30:40V CCF:123456 COO: 654321
+   CUPOM FISCAL   
+ITEM CODIGO DESCRICAO QTD UN VL UNIT(R$) ST VL ITEM(R$)
+1 10 Banana 10 cx 7.45 ST 74.50
+2 20 Laranja 5 cx 3.32 ST 16.60
+------------------------------
+TOTAL R$ 91.10
+Cartão de Crédito
+Troco R$ 0`
+
+test ('cupom_completo_credito', () => {
+    try{
+        let venda = lojaMod.makeVenda(DATA_HORA, CCF, COO);
+        venda.montarCompra(1, exProd1, 10);
+        venda.montarCompra(2, exProd2, 5);
+        venda.montarPagamento(METODO_PAG_CREDITO, VALOR_RECEBIDO);
+        venda.imprimeCupom();
+    }catch(e){
+        expect(e.message).toBe(TEXTO_ESPERADO_CUPOM_COMPLETO_CREDITO);
+    }
+})
+
+const TEXTO_ESPERADO_CUPOM_COMPLETO_DEBITO = `Loja 1
+Log 1, 10 C1
+Bai 1 - Mun 1 - E1
+CEP:11111-111 Tel (11) 1111-1111
+Obs 1
+CNPJ: 11.111.111/1111-11
+IE: 123456789
+------------------------------
+25/11/2020 10:30:40V CCF:123456 COO: 654321
+   CUPOM FISCAL   
+ITEM CODIGO DESCRICAO QTD UN VL UNIT(R$) ST VL ITEM(R$)
+1 10 Banana 10 cx 7.45 ST 74.50
+2 20 Laranja 5 cx 3.32 ST 16.60
+------------------------------
+TOTAL R$ 91.10
+Cartão de Débito
+Troco R$ 0`
+
+test ('cupom_completo_debito', () => {
+    try{
+        let venda = lojaMod.makeVenda(DATA_HORA, CCF, COO);
+        venda.montarCompra(1, exProd1, 10);
+        venda.montarCompra(2, exProd2, 5);
+        venda.montarPagamento(METODO_PAG_DEBITO, VALOR_RECEBIDO);
+        venda.imprimeCupom();
+    }catch(e){
+        expect(e.message).toBe(TEXTO_ESPERADO_CUPOM_COMPLETO_DEBITO);
+    }
+})
 
 let enderecoMod : Endereco = new Endereco (LOGRADOURO, NUMERO, COMPLEMENTO, BAIRRO,
   MUNICIPIO, ESTADO, CEP)
@@ -59,10 +159,6 @@ test('coo_vazio', () => {
     verificaCampoObrigatorio(`O campo coo é obrigatório`, coo_vazio)
 }); 
 
-let exProd1 : Produto = new Produto(10, "Banana", "cx", 7.45, "ST");
-let exProd2 : Produto = new Produto(20, "Laranja", "cx", 3.32, "ST");
-let exProd3 : Produto = new Produto(30, "Chocolate", "un", 0, ""); 
-
 test ('Venda_valor_item_0', () => {
     let venda = lojaMod.makeVenda(DATA_HORA, CCF, COO);
     verificaCampoObrigatorioVenda("Valor do produto inválido", venda, 1, exProd3, 3)
@@ -83,3 +179,20 @@ test ('Venda_quantidade_0', () => {
     let venda = lojaMod.makeVenda(DATA_HORA, CCF,COO);
     verificaCampoObrigatorioVenda("Quantidade de itens inválida", venda, 1, exProd2, 0)
 })
+
+test ('Metodo_Pagamento_Invalido', () => {
+    let venda = lojaMod.makeVenda(DATA_HORA, CCF, COO)
+    venda.montarCompra(1, exProd1, 10);
+    venda.montarCompra(2, exProd2, 5);
+    venda.montarPagamento("Boleto", VALOR_RECEBIDO);
+    verificaCampoObrigatorioPagamento("Forma de pagamento não aceita", venda)
+})
+
+test ('Valor_Pagamento_Insuficiente', () => {
+    let venda = lojaMod.makeVenda(DATA_HORA, CCF, COO)
+    venda.montarCompra(1, exProd1, 10);
+    venda.montarCompra(2, exProd2, 5);
+    venda.montarPagamento(METODO_PAG_DINHEIRO, 50);
+    verificaCampoObrigatorioPagamento("O pagamento é insuficiente para a compra", venda)
+})
+

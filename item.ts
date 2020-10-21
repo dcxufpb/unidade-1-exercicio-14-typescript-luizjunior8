@@ -30,9 +30,9 @@ export class Item {
     }
 
     public dados_item(): string {
-        return `${this.getItem()} ${this.produto.getCodigo()} ${this.produto.getDescricao()}
- ${this.getQuantidade()} ${this.produto.getUnidade()} ${this.produto.getValorUnitario().toFixed(2)}
- ${this.produto.getSubstituicaoTributaria()} ${this.valor_final_item().toFixed(2)}\n`;
+        return `${this.getItem()} ${this.produto.getCodigo()} ${this.produto.getDescricao()} `+
+               `${this.getQuantidade()} ${this.produto.getUnidade()} ${this.produto.getValorUnitario().toFixed(2)} `+
+               `${this.produto.getSubstituicaoTributaria()} ${this.valor_final_item().toFixed(2)}\n`;
     }
 
     

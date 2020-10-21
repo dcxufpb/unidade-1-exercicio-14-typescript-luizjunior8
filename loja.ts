@@ -26,10 +26,10 @@ export class Loja {
             throw new Error (`O campo nome da loja é obrigatório`)
         }
         if (!this.cnpj){
-        throw new Error (`O campo CNPJ da loja é obrigatório`)
+            throw new Error (`O campo CNPJ da loja é obrigatório`)
         }
         if (!this.inscricao_estadual){
-        throw new Error (`O campo inscrição estadual da loja é obrigatório`)
+            throw new Error (`O campo inscrição estadual da loja é obrigatório`)
         }
     }
 

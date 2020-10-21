@@ -1,6 +1,8 @@
 import { Loja } from "./loja";
 import { Produto } from "./produto";
 import { Item } from "./item";
+import { Pagamento } from "./pagamento";
+
 
 export class Venda {
 
@@ -10,7 +12,8 @@ export class Venda {
         private dataHora : string,
         private ccf : number,
         private coo : number,
-        private itens : Array<Item> = []) { }
+        private itens : Array<Item> = [],
+        private pagamento : Pagamento = new Pagamento("", 0, 0)) { }
 
     public valida_dados_obrigatorios(): void {
 
@@ -75,7 +78,7 @@ export class Venda {
     } 
 
 
-    public dados_venda(): string {
+    public dados_venda() : string {
 
         this.valida_dados_obrigatorios()
 
@@ -83,10 +86,15 @@ export class Venda {
 
         let _ccf : string = "CCF:" + this.ccf
 
-        let _coo : string = "COO:" + this.coo
+        let _coo : string = "COO: " + this.coo
 
-        return `${datahora}${_ccf}${_coo}
-`
+        return `${datahora} ${_ccf} ${_coo}`
+    }
+
+    public montarPagamento(metodoPagamento: string, valorRecebido: number) {
+
+        let valorCompra = this.totalCompra()
+        this.pagamento = new Pagamento(metodoPagamento, valorRecebido, valorCompra)
     }
 
     public imprimeCupom(): string {
@@ -94,12 +102,18 @@ export class Venda {
         let infoLoja = this.loja.dados_loja();
         let infoVenda = this.dados_venda();
         let conta = this.totalCompra().toFixed(2);
-
-        return `${infoLoja}--------------------
+        let infoFormaPag = this.pagamento.formaPagamento()
+        let infoValorRecebido = this.pagamento.getValorRecebido().toFixed(2);
+        let infoTroco = this.pagamento.calculaTroco().toFixed(2);
+        let trace = "-".repeat(30)
+        
+        return `${infoLoja}${trace}
 ${infoVenda}
-   CUPOOM FISCAL   
-${this.dadosCompra()}--------------------
-TOTAL R${conta}`;
+   CUPOM FISCAL   
+${this.dadosCompra()}${trace}
+TOTAL R$ ${conta}
+${infoFormaPag} ${infoValorRecebido}
+Troco R$ ${infoTroco}`;
     }
 
-} 
+}  
